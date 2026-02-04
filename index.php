@@ -127,7 +127,7 @@ if (isset($_POST['vote'])) {
                     <form method="POST" id="formVote">
                 <div class="mb-3">
                     <label class="form-label">Nama Pemilih</label>
-                    <input type="text" name="nama" id="nama" class="form-control" placeholder="contoh: Iqbal Aldiansyah">
+                    <input type="text" name="nama" id="nama" class="form-control" placeholder="contoh: Anjali Violita Pramstri">
                 </div>
 
                 <div class="mb-3">
