@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" id="formVote">
 
                 <div class="mb-3">
-                    <label class="form-label">Nama Pemilih</label>
+                    <label class="form-label">Nama</label>
                     <input type="text" name="nama" id="nama" class="form-control"
                            placeholder="contoh: Anjali Violita Pramestri">
                 </div>
