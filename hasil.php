@@ -1,31 +1,42 @@
 <?php
 include "koneksi.php";
 
-$query = "
-    SELECT k.nama, COUNT(s.id) AS total_suara
-    FROM kandidat k
-    LEFT JOIN suara s ON k.id = s.kandidat_id
-    GROUP BY k.nama
-    ORDER BY total_suara DESC
-";
+$kandidatList = [
+    1 => "Afrizal",
+    2 => "Nabila Rindi",
+    3 => "Yassa Aji",
+];
 
-$q = pg_query($conn, $query);
+$hasil = [];
 
-if (!$q) {
-    die("Query gagal");
+foreach ($kandidatList as $id => $nama) {
+    $q = pg_query_params(
+        $conn,
+        "SELECT COUNT(*) FROM suara WHERE kandidat_id = $1",
+        [$id]
+    );
+
+    $total = pg_fetch_result($q, 0, 0);
+
+    $hasil[] = [
+        "nama"  => $nama,
+        "total" => $total
+    ];
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Hasil Pemilihan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
 <div class="container py-4">
-    <h2 class="text-center mb-4">Hasil Pemilihan Ketua Umum UKM Olahraga</h2>
+    <h2 class="text-center mb-4">Hasil Pemilihan Ketua Umum UKM Olah Raga</h2>
 
     <div class="card shadow">
         <div class="card-body">
@@ -38,19 +49,14 @@ if (!$q) {
                     </tr>
                 </thead>
                 <tbody>
-                <?php while ($h = pg_fetch_assoc($q)) { ?>
+                <?php foreach ($hasil as $h) { ?>
                     <tr>
                         <td><?= $h['nama'] ?></td>
-                        <td><?= $h['total_suara'] ?></td>
+                        <td><?= $h['total'] ?></td>
                     </tr>
                 <?php } ?>
                 </tbody>
             </table>
-
-            <div class="text-center mt-3">
-                <a href="index.php" class="btn btn-danger">Kembali ke Voting</a>
-            </div>
-
         </div>
     </div>
 </div>

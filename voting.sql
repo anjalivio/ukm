@@ -1,53 +1,46 @@
-
 CREATE TABLE pemilih (
     id SERIAL PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
-    nif VARCHAR(20) UNIQUE NOT NULL
-);
-
-ALTER TABLE pemilih
-ADD COLUMN no_telp VARCHAR(15);
-
-
-CREATE TABLE kandidat (
-    id SERIAL PRIMARY KEY,
-    nama VARCHAR(100) NOT NULL,
-    foto VARCHAR(100),
-    visi TEXT,
-    misi TEXT
+    nif VARCHAR(20) UNIQUE NOT NULL,
+    no_telp VARCHAR(15)
 );
 
 CREATE TABLE suara (
     id SERIAL PRIMARY KEY,
     nif VARCHAR(20) NOT NULL,
-    kandidat_id INT NOT NULL,
-    CONSTRAINT fk_kandidat
-        FOREIGN KEY (kandidat_id)
-        REFERENCES kandidat(id)
-        ON DELETE CASCADE
+    kandidat_id INT NOT NULL
 );
 
--- Data 3 kandidat
-INSERT INTO kandidat (nama, foto, visi, misi) VALUES
-('kandidat 1', '1.jpg', 'Menjadikan UKM olahraga berprestasi', 'Latihan rutin dan turnamen aktif'),
-('kandidat 2', '2.jpg', 'UKM olahraga solid dan profesional', 'Manajemen rapi dan prestasi nasional'),
-('kandidat 3', '3.jpg', 'UKM olahraga inklusif dan kompetitif', 'Rekrutmen terbuka dan event rutin');
-
+-- Lihat semua pemilih
 SELECT nama, nif, no_telp
 FROM pemilih
 ORDER BY nama ASC;
 
-SELECT 
-    p.nama   AS nama_pemilih,
+-- Hitung suara per kandidat (untuk halaman hasil)
+SELECT kandidat_id, COUNT(*) AS total_suara
+FROM suara
+GROUP BY kandidat_id
+ORDER BY kandidat_id;
+
+--data nama pemilih dan yang dipilih
+SELECT
+    p.nama     AS nama_pemilih,
     p.nif,
     p.no_telp,
-    k.nama   AS kandidat_dipilih
+    CASE s.kandidat_id
+        WHEN 1 THEN 'Afrizal'
+        WHEN 2 THEN 'Nabila Rindi'
+        WHEN 3 THEN 'Yassa Aji'
+        ELSE 'Tidak diketahui'
+    END AS kandidat_dipilih
 FROM pemilih p
 JOIN suara s ON p.nif = s.nif
-JOIN kandidat k ON s.kandidat_id = k.id
-ORDER BY p.nama;
+ORDER BY p.nama ASC;
 
-TRUNCATE TABLE pemilih CASCADE;
-TRUNCATE TABLE suara CASCADE;
-
+--cek tabel pemilih & suara
+select * from pemilih;
 select * from suara;
+
+--hapus data tabel
+TRUNCATE TABLE suara;
+TRUNCATE TABLE pemilih;
