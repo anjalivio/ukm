@@ -2,9 +2,9 @@
 include "koneksi.php";
 
 $kandidatList = [
-    ["id" => 1, "nama" => "Afrizal", "foto" => "Kandidat1.jpg"],
-    ["id" => 2, "nama" => "Nabila Rindi", "foto" => "Kandidat2.jpg"],
-    ["id" => 3, "nama" => "Yassa Aji", "foto" => "Kandidat3.jpg"],
+    ["id" => 1, "nama" => "Muhammad Afrizal Ramadlan", "foto" => "Kandidat1.jpg"],
+    ["id" => 2, "nama" => "Nabila Rindi Cecylia D.", "foto" => "Kandidat2.jpg"],
+    ["id" => 3, "nama" => "Yassa Aji Panuntun", "foto" => "Kandidat3.jpg"],
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
