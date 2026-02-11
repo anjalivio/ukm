@@ -1,14 +1,18 @@
 CREATE TABLE pemilih (
     id SERIAL PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
-    nif VARCHAR(20) UNIQUE NOT NULL,
-    no_telp VARCHAR(15)
+    nif VARCHAR(20) UNIQUE,               
+    no_telp VARCHAR(15) UNIQUE NOT NULL   
 );
 
 CREATE TABLE suara (
     id SERIAL PRIMARY KEY,
-    nif VARCHAR(20) NOT NULL,
-    kandidat_id INT NOT NULL
+    kandidat_id INT NOT NULL,
+    pemilih_id INT NOT NULL UNIQUE,
+    CONSTRAINT fk_pemilih
+        FOREIGN KEY (pemilih_id)
+        REFERENCES pemilih(id)
+        ON DELETE CASCADE
 );
 
 -- Lihat semua pemilih
@@ -24,7 +28,7 @@ ORDER BY kandidat_id;
 
 --data nama pemilih dan yang dipilih
 SELECT
-    p.nama     AS nama_pemilih,
+    p.nama AS nama_pemilih,
     p.nif,
     p.no_telp,
     CASE s.kandidat_id
@@ -34,7 +38,7 @@ SELECT
         ELSE 'Tidak diketahui'
     END AS kandidat_dipilih
 FROM pemilih p
-JOIN suara s ON p.nif = s.nif
+JOIN suara s ON p.id = s.pemilih_id
 ORDER BY p.nama ASC;
 
 --cek tabel pemilih & suara
@@ -42,5 +46,8 @@ select * from pemilih;
 select * from suara;
 
 --hapus data tabel
-TRUNCATE TABLE suara;
-TRUNCATE TABLE pemilih;
+TRUNCATE TABLE suara RESTART IDENTITY CASCADE;
+TRUNCATE TABLE pemilih RESTART IDENTITY CASCADE;
+
+
+

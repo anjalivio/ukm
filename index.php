@@ -8,42 +8,63 @@ $kandidatList = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama     = $_POST['nama'] ?? '';
-    $nif      = $_POST['nif'] ?? '';
-    $no_telp  = $_POST['no_telp'] ?? '';
+
+    $nama     = trim($_POST['nama'] ?? '');
+    $nif      = trim($_POST['nif'] ?? '');
+    $no_telp  = trim($_POST['no_telp'] ?? '');
     $kandidat = $_POST['kandidat'] ?? '';
 
-    if ($nama && $nif && $kandidat) {
-
-        pg_query_params(
-            $conn,
-            "INSERT INTO pemilih (nama, nif, no_telp)
-             VALUES ($1, $2, $3)
-             ON CONFLICT (nif) DO NOTHING",
-            [$nama, $nif, $no_telp]
-        );
-
-        $cek = pg_query_params(
-            $conn,
-            "SELECT 1 FROM suara WHERE nif = $1",
-            [$nif]
-        );
-
-        if (pg_num_rows($cek) == 0) {
-            pg_query_params(
-                $conn,
-                "INSERT INTO suara (nif, kandidat_id)
-                 VALUES ($1, $2)",
-                [$nif, $kandidat]
-            );
-        }
+    if (!preg_match("/^[A-Za-z\s]{3,}$/", $nama)) {
+        die("Nama tidak valid");
     }
 
-    header("Location: index.php");
+    if ($nif !== '' && !preg_match("/^[0-9]{2}0206_[0-9]{3}$/", $nif)) {
+        die("Format NIF salah. Contoh: 240206_123");
+    }
+
+    if (!preg_match("/^08[0-9]{8,11}$/", $no_telp)) {
+        die("Nomor WA tidak valid");
+    }
+
+    if (!in_array($kandidat, [1,2,3])) {
+        die("Kandidat tidak valid");
+    }
+
+    $result = pg_query_params(
+        $conn,
+        "INSERT INTO pemilih (nama, nif, no_telp)
+         VALUES ($1, NULLIF($2, ''), $3)
+         ON CONFLICT (no_telp)
+         DO UPDATE SET nama = EXCLUDED.nama
+         RETURNING id",
+        [$nama, $nif, $no_telp]
+    );
+
+    $pemilih = pg_fetch_assoc($result);
+    $pemilih_id = $pemilih['id'];
+
+    $cekVote = pg_query_params(
+        $conn,
+        "SELECT 1 FROM suara WHERE pemilih_id = $1",
+        [$pemilih_id]
+    );
+
+    if (pg_num_rows($cekVote) > 0) {
+        die("Anda sudah melakukan voting!");
+    }
+
+    pg_query_params(
+        $conn,
+        "INSERT INTO suara (pemilih_id, kandidat_id)
+         VALUES ($1, $2)",
+        [$pemilih_id, $kandidat]
+    );
+
+    header("Location: index.php?sukses=1");
     exit;
 }
-?>
 
+?>
 
 <!DOCTYPE html>
 <html lang="id">
@@ -130,20 +151,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="mb-3">
                     <label class="form-label">Nama</label>
-                    <input type="text" name="nama" id="nama" class="form-control"
-                           placeholder="contoh: Anjali Violita Pramestri">
+                        <input type="text"
+                            name="nama"
+                            id="nama"
+                            class="form-control"
+                            placeholder="contoh: Anjali Violita Pramestri"
+                            required
+                            minlength="5"
+                            pattern="[A-Za-z\s]+"
+                            title="Nama hanya boleh huruf dan spasi">
                 </div>
 
-                <div class="mb-3">
+               <div class="mb-3">
                     <label class="form-label">NIF</label>
-                    <input type="text" name="nif" id="nif" class="form-control"
-                           placeholder="contoh: 240206_062">
+                        <input type="text"
+                                name="nif"
+                                id="nif"
+                                class="form-control"
+                                placeholder="contoh: 240206_123"
+                                pattern="^[0-9]{2}0206_[0-9]{3}$"
+                                title="Format NIF: YY0206_XXX (contoh: 240206_123)">
                 </div>
 
-                <div class="mb-3">
+               <div class="mb-3">
                     <label class="form-label">Nomor Telepon (WA)</label>
-                    <input type="text" name="no_telp" id="no_telp" class="form-control"
-                           placeholder="contoh: 088991370642">
+                        <input  type="tel"
+                                name="no_telp"
+                                id="no_telp"
+                                class="form-control"
+                                placeholder="contoh: 088991370642"
+                                required
+                                pattern="^08[0-9]{8,11}$"
+                                title="Nomor WA harus diawali 08 dan hanya angka">
                 </div>
 
                 <h4 class="text-center mt-4 mb-3">Pilih Kandidat</h4>
@@ -221,10 +260,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function cekForm() {
     const nama = document.getElementById("nama").value.trim();
     const nif  = document.getElementById("nif").value.trim();
+    const telp = document.getElementById("no_telp").value.trim();
     const kandidat = document.querySelector('input[name="kandidat"]:checked');
 
-    if (nama === "" || nif === "") {
-        alert("Nama dan NIF wajib diisi!");
+    const regexNama = /^[A-Za-z\s]{5,}$/;
+    const regexNif  = /^[0-9]{2}0206_[0-9]{3}$/;
+    const regexTelp = /^08[0-9]{8,11}$/;
+
+    if (!regexNama.test(nama)) {
+        alert("Nama hanya boleh huruf dan minimal 5 karakter.");
+        return;
+    }
+
+    if (nif !== '' && !regexNif.test(nif)) {
+        alert("Format NIF salah! Contoh: 240206_062");
+        return;
+    }
+
+    if (!regexTelp.test(telp)) {
+        alert("Nomor WA tidak valid!");
         return;
     }
 
@@ -239,6 +293,7 @@ function cekForm() {
     modal.show();
 }
 </script>
+
 
 </body>
 </html>
