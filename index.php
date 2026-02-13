@@ -18,9 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Nama tidak valid");
     }
 
-    if ($nif !== '' && !preg_match("/^[0-9]{2}0206_[0-9]{3}$/", $nif)) {
-        die("Format NIF salah. Contoh: 240206_123");
+    $regexNIF = "/^[0-9]{2}0206_[0-9]{3}$/";
+    $regexNIM = "/^[0-9]{12}$/";
+
+    $awal = substr($nif, 0, 2);
+
+    if ($nif !== '' && !in_array($awal, ['23','24','25'])) {
+        die("Identitas harus diawali 23 (SC), 24 (OC), atau 25 (Fungsionaris)");
     }
+
 
     if (!preg_match("/^08[0-9]{8,11}$/", $no_telp)) {
         die("Nomor WA tidak valid");
@@ -31,14 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $result = pg_query_params(
-        $conn,
-        "INSERT INTO pemilih (nama, nif, no_telp)
-         VALUES ($1, NULLIF($2, ''), $3)
-         ON CONFLICT (no_telp)
-         DO UPDATE SET nama = EXCLUDED.nama
-         RETURNING id",
+    $conn,
+        "INSERT INTO pemilih (nama, identitas, no_telp)
+        VALUES ($1, NULLIF($2, ''), $3)
+        ON CONFLICT (no_telp)
+        DO UPDATE SET nama = EXCLUDED.nama
+        RETURNING id",
         [$nama, $nif, $no_telp]
     );
+
 
     $pemilih = pg_fetch_assoc($result);
     $pemilih_id = $pemilih['id'];
@@ -53,12 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Anda sudah melakukan voting!");
     }
 
-    pg_query_params(
+    $insertSuara = pg_query_params(
         $conn,
         "INSERT INTO suara (pemilih_id, kandidat_id)
-         VALUES ($1, $2)",
+        VALUES ($1, $2)",
         [$pemilih_id, $kandidat]
     );
+
+    if (!$insertSuara) {
+        die("Error suara: " . pg_last_error($conn));
+    }
+
 
     header("Location: index.php?sukses=1");
     exit;
@@ -163,14 +175,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                <div class="mb-3">
-                    <label class="form-label">NIF</label>
+                    <label class="form-label">NIF / NIM</label>
                         <input type="text"
                                 name="nif"
                                 id="nif"
                                 class="form-control"
-                                placeholder="contoh: 240206_123"
-                                pattern="^[0-9]{2}0206_[0-9]{3}$"
-                                title="Format NIF: YY0206_XXX (contoh: 240206_123)">
+                                placeholder="contoh: 240206_123 atau 244107060007"
+                                pattern="(^[0-9]{2}0206_[0-9]{3}$)|(^[0-9]{12}$)"
+                                title="Isi NIF (240206_123) atau NIM (12 digit angka)">
                 </div>
 
                <div class="mb-3">
@@ -264,7 +276,8 @@ function cekForm() {
     const kandidat = document.querySelector('input[name="kandidat"]:checked');
 
     const regexNama = /^[A-Za-z\s]{5,}$/;
-    const regexNif  = /^[0-9]{2}0206_[0-9]{3}$/;
+    const regexNIF = /^[0-9]{2}0206_[0-9]{3}$/;
+    const regexNIM = /^[0-9]{12}$/;
     const regexTelp = /^08[0-9]{8,11}$/;
 
     if (!regexNama.test(nama)) {
@@ -272,8 +285,8 @@ function cekForm() {
         return;
     }
 
-    if (nif !== '' && !regexNif.test(nif)) {
-        alert("Format NIF salah! Contoh: 240206_062");
+    if (nif !== '' && !regexNIF.test(nif) && !regexNIM.test(nif)) {
+        alert("Format NIF/NIM salah! Contoh: 240206_123 atau 244107060007");
         return;
     }
 
@@ -292,6 +305,7 @@ function cekForm() {
     );
     modal.show();
 }
+
 </script>
 
 
