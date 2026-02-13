@@ -3,8 +3,8 @@ include "koneksi.php";
 
 $kandidatList = [
     1 => "Afrizal",
-    2 => "Nabila Rindi",
-    3 => "Yassa Aji",
+    2 => "Yassa Aji",
+    3 => "Nabila Rindi",
 ];
 
 $hasil = [];
