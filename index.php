@@ -2,9 +2,9 @@
 include "koneksi.php";
 
 $kandidatList = [
-    ["id" => 1, "nama" => "Muhammad Afrizal Ramadlan", "foto" => "Kandidat1.jpg"],
-    ["id" => 2, "nama" => "Nabila Rindi Cecylia D.", "foto" => "Kandidat2.jpg"],
-    ["id" => 3, "nama" => "Yassa Aji Panuntun", "foto" => "Kandidat3.jpg"],
+    ["id" => 1, "nama" => "Muhammad Afrizal Ramadlan", "foto" => "kandidat1.jpg"],
+    ["id" => 2, "nama" => "Yassa Aji Panuntun", "foto" => "kandidat2.jpg"],
+    ["id" => 3, "nama" => "Nabila Rindi Cecylia Deswanti", "foto" => "kandidat3.jpg"],
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 name="no_telp"
                                 id="no_telp"
                                 class="form-control"
-                                placeholder="contoh: 088991370642"
+                                placeholder="contoh: 08123456789"
                                 required
                                 pattern="^08[0-9]{8,11}$"
                                 title="Nomor WA harus diawali 08 dan hanya angka">
@@ -202,8 +202,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="card-body text-center">
                                     <img src="<?= $k['foto'] ?>"
                                          class="img-fluid rounded mb-3"
-                                         style="max-height:200px">
-                                    <h5><?= $k['nama'] ?></h5>
+                                         style="max-height:280px">
+                                    <h6><?= $k['nama'] ?></h6>
                                 </div>
                             </label>
                         </div>
